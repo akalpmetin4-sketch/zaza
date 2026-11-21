@@ -1,0 +1,37 @@
+permissions:
+  id-token: write
+  contents: read
+  name: opencode
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  opencode:
+    if: contains(github.event.comment.body, '/oc') || contains(github.event.comment.body, '/opencode')
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write        # For OpenCode App token exchange
+      contents: write        # To read/write repo files
+      issues: write          # To comment/triage issues
+      pull-requests: write   # To open/update PRs
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Run OpenCode
+        uses: anomalyco/opencode/github@latest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}   # Example for Anthropic
+        with:
+          model: anthropic/claude-sonnet-5-5                     # Or another provider/model
+          # agent: build                                        # Optional: specify agent
+          # prompt: "..."                                       # Optional: custom prompt
+          # share: true                                         # Optional: share session externally
+          
